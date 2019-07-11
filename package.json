@@ -1,0 +1,19 @@
+{
+  "name": "fetch-test",
+  "version": "1.0.0",
+  "description": "diplomski",
+  "main": "index.js",
+  "scripts": {
+    "start": "index.js"
+  },
+  "author": "KJ",
+  "license": "MIT",
+  "dependencies": {
+    "esm": "^3.2.25",
+    "express": "^4.17.1",
+    "nedb": "^1.8.0",
+    "node-fetch": "^2.6.0",
+    "web-push": "^3.3.5"
+  },
+  "devDependencies": {}
+}
