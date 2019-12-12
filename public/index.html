@@ -27,33 +27,14 @@
 
         <a href="#">Početna</a>
         <div class="divider"></div>
-        <a href="druga.html">Čitaoci foto-reporteri</a>
-        <div class="divider"></div>
 
         <br>
         <p id="p-drzava-ili-svet">Pregledaj top 10 članaka za ceo svet!</p>
         <a id="btn-vrati-10-clanaka" class="waves-effect waves-light btn disabled">
             Pregledaj</a>
         <br>
-        <br>
         <div class="divider"></div>
         <br>
-
-        <div class="input-field col s12">
-            <select id="kategorije">
-                <option value="football">fudbal</option>
-                <option value="health">zdravlje</option>
-                <option value="ecology">ekologija</option>
-                <option value="science">nauka</option>
-                <option value="food">ishrana</option>
-                <option value="culture">kultura</option>
-                <option value="film">filmovi</option>
-            </select>
-            <label>Kategorije vesti</label>
-        </div>
-        <a id="btn-vrati-po-kategoriji" class="waves-effect waves-light btn disabled">
-            Pretraži</a>
-
 
     </div>
 
@@ -64,16 +45,18 @@
     </div>
 
     <script>
-        const publicVapidKey = "BCKcmijEXML89kXg5Zt-aZAEPzOO-fFbA38L5pCUak8vA89MU6DYKTR26KHry359Vkowlln-l2KFwQbusLQLayQ";
-        const subscriptions = {};
-        let sub = "";
-        const selectKategorije = document.getElementById("kategorije");
-
         window.addEventListener('load', () => {
             pokreniGeolokaciju();
-            var elems = document.querySelectorAll('select');
-            var instances = M.FormSelect.init(elems, null);
         });
+        async function pokreniSW() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('registrovan SW'))
+                    .catch(err => 'Nije registrovan SW')              
+            } else {
+                console.log("Ne postoji podrska za sw");
+            }
+        };
 
         async function pokreniGeolokaciju() {
             if (navigator.onLine == false) {
@@ -112,7 +95,7 @@
                     console.log("Dozvoljena geolokacija.")
 
                 }, (err) => {
-                    localStorage.setItem('svet', "Ceo svet");
+                    localStorage.setItem('svet', "true");
                     document.getElementById("btn-vrati-10-clanaka").classList.remove("disabled");
                     document.getElementById("p-drzava-ili-svet").innerText = "Pregledaj top 10 članaka za ceo svet.";
                     document.getElementById("btn-vrati-10-clanaka").setAttribute("onclick", "vrati10ClanakaZaSvet()");
@@ -123,103 +106,6 @@
                 console.log("Nije dozvoljena geolokacija!");
             }
         };
-
-
-        async function pokreniSW() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => console.log('registrovan SW'))
-                    .catch(err => 'Nije registrovan SW')
-
-                const reg = await navigator.serviceWorker.register('/sw.js', {
-                    scope: '/public'
-                });
-
-                sub = await reg.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-                });
-                console.log("registrovan push");
-
-                Notification.requestPermission()
-                    .then(
-                    posaljiZahtevZaPush()
-                        .catch(err => {
-                            console.error(err)
-                        })
-                    )
-                    .catch(err => {
-                        console.log("Ne postoji dozvola za push notifications.");
-                    })
-            } else {
-                console.log("Ne postoji podrska za sw");
-            }
-        };
-
-
-        //drzava
-        async function vrati10ClanakaZaDrzavu() {
-            const drzavaZaPretragu = localStorage.getItem("drzava");
-            console.log(drzavaZaPretragu);
-            const clanciD = await fetch(`/desetclanaka/${drzavaZaPretragu}`);
-            const jsonClanciD = await clanciD.json();
-            pokreniSW();
-
-            prikaziClanke(await jsonClanciD);
-            omoguciPretraguPoDrzavi(drzavaZaPretragu);
-        };
-
-        function omoguciPretraguPoDrzavi(drzavaZaPretragu) {
-            var instance = M.FormSelect.getInstance(selectKategorije);
-            var niz = instance.getSelectedValues();
-            var kriterijum = niz[0];
-            console.log(kriterijum);
-            console.log(drzavaZaPretragu);
-
-            document.getElementById("btn-vrati-po-kategoriji").setAttribute("onclick", `vrati10ClanakaZaDrzavuPoUslovu("${drzavaZaPretragu}", "${kriterijum}")`);
-            document.getElementById("btn-vrati-po-kategoriji").classList.remove("disabled");
-        }
-
-
-        async function vrati10ClanakaZaDrzavuPoUslovu(drzavaZaPretragu, kategorijaZaPretragu) {
-            console.log(kategorijaZaPretragu);
-            const clanciDU = await fetch(`/desetclanakadrzava/${drzavaZaPretragu},${kategorijaZaPretragu}`);
-            const jsonClanciDU = await clanciDU.json();
-            pokreniSW();
-
-            prikaziClanke(await jsonClanciDU);
-        }
-
-        //svet
-        async function vrati10ClanakaZaSvet() {
-            const clanciS = await fetch(`/desetclanakasvet/`);
-            const jsonClanciS = await clanciS.json();
-            pokreniSW();
-
-            prikaziClanke(await jsonClanciS);
-            omoguciPretraguZaSvet();
-        }
-
-        function omoguciPretraguZaSvet() {
-            var instance = M.FormSelect.getInstance(selectKategorije);
-            var niz = instance.getSelectedValues();
-            var kriterijum = niz[0];
-            console.log(kriterijum);
-
-            document.getElementById("btn-vrati-po-kategoriji").setAttribute("onclick", `vrati10ClanakaZaSvetPoUslovu("${kriterijum}")`);
-            document.getElementById("btn-vrati-po-kategoriji").classList.remove("disabled");
-        }
-
-
-        async function vrati10ClanakaZaSvetPoUslovu(kategorijaZaPretragu) {
-            console.log(kategorijaZaPretragu);
-            const clanciSU = await fetch(`/desetclanakasvet/${kategorijaZaPretragu}`);
-            const jsonClanciSU = await clanciSU.json();
-            pokreniSW();
-
-            prikaziClanke(await jsonClanciSU);
-        }
-
 
         //prikaz
         async function prikaziClanke(jsonClanci) {
@@ -249,34 +135,25 @@
             }
         };
 
-        async function posaljiZahtevZaPush() {
-            await fetch('/subscribe', {
-                method: 'POST',
-                body: JSON.stringify(await sub),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            console.log("poslat zahtev za push");
+        //drzava
+        async function vrati10ClanakaZaDrzavu() {
+            const drzavaZaPretragu = localStorage.getItem("drzava");
+            console.log(drzavaZaPretragu);
+            const clanciD = await fetch(`/desetclanaka/${drzavaZaPretragu}`);
+            const jsonClanciD = await clanciD.json();
+            pokreniSW();
+
+            prikaziClanke(await jsonClanciD);
         };
 
-        function urlBase64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding)
-                .replace(/-/g, '+')
-                .replace(/_/g, '/');
+        //svet
+        async function vrati10ClanakaZaSvet() {
+            const clanciS = await fetch(`/desetclanakasvet/`);
+            const jsonClanciS = await clanciS.json();
+            pokreniSW();
 
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-
-            for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray;
-        };
-
-
-
+            prikaziClanke(await jsonClanciS);
+        }
     </script>
 
 </body>

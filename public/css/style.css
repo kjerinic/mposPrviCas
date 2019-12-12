@@ -7,10 +7,9 @@ a {
 
 #clanci {
     padding: 15px;
-    border: 0.7px grey dashed;
-
 }
 
 #div-clanak {
     padding-bottom: 10px;
+    border: teal 1px;
 }
